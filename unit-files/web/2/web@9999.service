@@ -1,0 +1,30 @@
+[Unit]
+Description=docker meetup demo on port %i
+
+# Requirements
+Requires=etcd.service
+Requires=docker.service
+Requires=discovery@%i.service
+
+[Service]
+# Let processes take awhile to start up (for first run Docker containers)
+TimeoutStartSec=0
+
+# Change killmode from "control-group" to "none" to let Docker remove
+# work correctly.
+KillMode=none
+
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+# Pre-start and Start
+ExecStartPre=-/usr/bin/docker kill web.%i
+ExecStartPre=-/usr/bin/docker rm web.%i
+ExecStartPre=/usr/bin/docker pull tcnksm/docker-meetup-demo-web:2
+ExecStart=/usr/bin/docker run --name web.%i -p ${COREOS_PRIVATE_IPV4}:%i:80 tcnksm/docker-meetup-demo-web:2
+ExecStop=/usr/bin/docker stop web.%i
+
+[X-Fleet]
+MachineMetadata=role=web
+# Don't schedule on the same machine as other Apache instances
+Conflicts=web@*.service

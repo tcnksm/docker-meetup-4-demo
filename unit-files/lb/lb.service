@@ -1,0 +1,31 @@
+[Unit]
+Description=Nginx load balancer for web server backends
+
+# Requirements
+Requires=etcd.service
+Requires=docker.service
+
+# Dependency ordering
+After=etcd.service
+After=docker.service
+
+[Service]
+# Let the process take awhile to start up (for first run Docker containers)
+TimeoutStartSec=0
+
+# Change killmode from "control-group" to "none" to let Docker remove work correctly.
+KillMode=none
+
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+# Start
+ExecStartPre=-/usr/bin/docker kill lb
+ExecStartPre=-/usr/bin/docker rm lb
+ExecStartPre=/usr/bin/docker pull tcnksm/docker-meetup-demo-lb:latest
+ExecStart=/usr/bin/docker run --name lb -p ${COREOS_PUBLIC_IPV4}:80:80 tcnksm/docker-meetup-demo-lb:latest
+ExecStop=/usr/bin/docker stop lb
+
+[X-Fleet]
+# Set MachineID which is registered DNSimple
+MachineMetadata=role=lb
