@@ -33,7 +33,7 @@ $ terraform apply
 ```
 
 ```bash
-$ export FLEETCTL_TUNNEL="128.199.82.250"
+$ export FLEETCTL_TUNNEL="128.199.199.122"
 $ fleet list-machines
 ```
 
